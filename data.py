@@ -20,8 +20,13 @@ def daily_time(log, day = None):
     #edit date column to date format
     df['date_revised'] = pd.to_datetime(df["Date"], format='%Y-%m-%d')
     #created daily dataframe
-    df_day = df[df.date_revised == day]
+    
+    df.Start_time = pd.to_datetime(df['Start_time'])
+    df.End_time = pd.to_datetime(df['End_time'])
+    df['time_delta'] = df.apply(lambda row: pd.Timedelta(row['End_time'] - row['Start_time']).seconds / 60 + row['Alternations'], axis = 1)
    
-    return df_day
+    df_day = df[df.date_revised == day]
+    total_day = df_day.time_delta.sum() / 60 
+    return total_day 
 
 print(daily_time("logs/log1.csv"))
