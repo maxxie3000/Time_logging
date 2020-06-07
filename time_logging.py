@@ -11,7 +11,8 @@ import numpy as np
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 import csv 
-from datetime import date, datetime
+import datetime
+import time
 import pathlib
 import os
 
@@ -39,19 +40,19 @@ def write_new_log(url, fieldnames):
     with open(url, "w") as log: 
         writer = csv.DictWriter(log, fieldnames=fieldnames)
         writer.writeheader()
-        return "Log {0} is created".format(url)
+        return "Log {0} is created\n\n".format(url)
 
 def write_start(start):
     with open("logs/start_time.csv", "w") as starttime_log:
         writer = csv.writer(starttime_log, delimiter = ",")
         writer.writerow(start)    
         
-def get_day_of_the_week():
-    weeknumber = date.today().isocalendar()[1]
+def get_weeknumber():
+    weeknumber = datetime.date.today().isocalendar()[1]
     return weeknumber 
 
 def check_if_log_exists(number):
-    path = pathlib.Path('log{0}.csv'.format(number))
+    path = pathlib.Path('logs/log{0}.csv'.format(number))
     return path.exists()
 
 def retrieve_start():
@@ -66,25 +67,31 @@ def retrieve_start():
 
 def main_function():
     start = retrieve_start()
-    
-    if not start == False:
-    
+    current_weeknr = get_weeknumber()
+    if not check_if_log_exists(current_weeknr):
+        print("\n\nCreating new log \n")
+        print(write_new_log("logs/log{0}.csv".format(current_weeknr), fieldnames))
+        time.sleep(1)
+    if start == False:
+        n_activity = user_interactions.get_user_input(possible_activities)
+        activity = possible_activities[n_activity]
+        start_time = time.strftime('%H:%M:%S', time.localtime())
+        write_start([start_time, activity])
+        print(" {0} started at {1} \n".format(activity, start_time))
+        return
+    else:
         print(" Task ended ")
-        today = date.today()
-        time_ended = datetime.now().time()
+        today = datetime.date.today()
+        time_ended = time.localtime()
         time_started = start[0]
         activity = start[1]
         alternation, notes = user_interactions.ask_alternations_notes()
-        append_new_line("logs/log1.csv", [today, time_started, time_ended, activity, alternation, notes])
-        return
-    else:
-        n_activity = user_interactions.get_user_input(possible_activities)
-        activity = possible_activities[n_activity]
-        start_time = datetime.now().time()
-        write_start([start_time, activity])
-        print(" {0} started at {1} \n".format(activity, start_time))
-    return 
+        append_new_line("logs/log{0}.csv".format(current_weeknr), [today, time_started, time_ended, activity, alternation, notes])
+        print("Activity logged \n\n")
+        return 
 
-main_function()
-            
+#main_function()
+
+
+           
 

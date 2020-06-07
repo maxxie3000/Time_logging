@@ -9,6 +9,8 @@ Created on Thu Jun  4 17:37:15 2020
 import pandas as pd 
 from datetime import datetime
 
+import time_logging
+
 def daily_time(log, day = None):
     # Checks if day is filled, otherwise takes today NEED TO CHECK FOR PANDA COMMAND
     if day == None:
@@ -27,6 +29,18 @@ def daily_time(log, day = None):
    
     df_day = df[df.date_revised == day]
     total_day = df_day.time_delta.sum() / 60 
-    return total_day 
+    minutes = int(round(total_day % 1 * 60))
+    hours = int(total_day - (total_day%1))
+    print(df_day)
+    total = "{0}:{1}".format(hours,minutes)
+    return total 
 
-print(daily_time("logs/log1.csv"))
+def weekly_avg(weeknr = None):
+    if weeknr == None:
+        weeknr = time_logging.get_weeknumber()
+    df = pd.read_csv('logs/log{0}.csv'.format(weeknr))
+    n_days = df.Date.nunique()
+    return n_days
+
+
+print(weekly_avg(1))
