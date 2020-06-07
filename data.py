@@ -43,4 +43,3 @@ def weekly_avg(weeknr = None):
     return n_days
 
 
-print(weekly_avg(1))

@@ -82,7 +82,7 @@ def main_function():
     else:
         print(" Task ended ")
         today = datetime.date.today()
-        time_ended = time.localtime()
+        time_ended = time.strftime('%H:%M:%S', time.localtime())
         time_started = start[0]
         activity = start[1]
         alternation, notes = user_interactions.ask_alternations_notes()
@@ -90,7 +90,7 @@ def main_function():
         print("Activity logged \n\n")
         return 
 
-#main_function()
+main_function()
 
 
            
