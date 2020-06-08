@@ -47,8 +47,13 @@ def write_start(start):
         writer = csv.writer(starttime_log, delimiter = ",")
         writer.writerow(start)    
         
-def get_weeknumber():
-    weeknumber = datetime.date.today().isocalendar()[1]
+def get_weeknumber(day = None):
+    if day == None:
+        weeknumber = datetime.date.today().isocalendar()[1]
+         
+    else: 
+        day_datetime = datetime.datetime.strptime(day, '%Y-%m-%d')
+        weeknumber = day_datetime.isocalendar()[1]
     return weeknumber 
 
 def check_if_log_exists(number):
@@ -90,7 +95,9 @@ def main_function():
         print("Activity logged \n\n")
         return 
 
-main_function()
+if __name__ == '__main__':
+    main_function()
+
 
 
            
