@@ -41,7 +41,7 @@ def ask_alternations_notes():
             print("Wrong input")
     
     while b == False:
-        y_n_note = input("\n Do you want to add a note? Y/N").lower()
+        y_n_note = input("\n Do you want to add a note? Y/N\n").lower()
         if( y_n_note == "y"):   
             note = input("\n Provide your note:\n")
             b = True
