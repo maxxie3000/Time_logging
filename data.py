@@ -10,6 +10,8 @@ test
 
 import pandas as pd 
 from datetime import datetime
+import matplotlib.pyplot as plt
+import random
 
 import time_logging
 
@@ -60,6 +62,60 @@ def weekly_avg(weeknr = None):
     avg_daily = total_hours / n_days 
     return minutes_to_hours(avg_daily)
 
+def running_weekly_avg(date):
+    wknr = time_logging.get_weeknumber(date)
+    df_1 = pd.read_csv("logs/log{0}.csv".format(wknr-1))
+    df_2 = pd.read_csv("logs/log{0}.csv".format(wknr))
+    daynr = pd.to_datetime(datetime.strptime(date,'%Y-%m-%d').date()).weekday()
+    df_1['date_revised'] = pd.to_datetime(df_1["Date"], format='%Y-%m-%d')
+    df_2['date_revised'] = pd.to_datetime(df_2["Date"], format='%Y-%m-%d')
+    df_1['weekday'] = df_1['date_revised'].dt.weekday
+    df_2['weekday'] = df_2['date_revised'].dt.weekday
+    
+    df_1 = df_1[df_1['weekday'] >= daynr]
+    
+    df_1.Start_time = pd.to_datetime(df_1['Start_time'])
+    df_1.End_time = pd.to_datetime(df_1['End_time'])
+    df_2.Start_time = pd.to_datetime(df_2['Start_time'])
+    df_2.End_time = pd.to_datetime(df_2['End_time'])
+    
+    df_1['time_delta'] = df_1.apply(lambda row: pd.Timedelta(row['End_time'] - row['Start_time']).seconds / 60 + row['Alternations'], axis = 1)
+    df_2['time_delta'] = df_2.apply(lambda row: pd.Timedelta(row['End_time'] - row['Start_time']).seconds / 60 + row['Alternations'], axis = 1)
+    
+    df_1 = df_1.groupby(['Date']).sum()
+    df_1.time_delta = df_1.time_delta / 60 
+    
+    df_2 = df_2.groupby(['Date']).sum()
+    df_2.time_delta = df_2.time_delta / 60 
+    
+    df_1 = df_1.append(df_2)
+    
+    df_1 = df_1.reset_index()
+   
+
+    c = ['red', 'slateblue', 'midnightblue', 'darkslategrey', 'sandybrown', 'palevioletred', 'orange']
+
+    
+    plt.figure( figsize=(16,10), dpi=80)
+    plt.bar(df_1['Date'], df_1['time_delta'], color = c, width=.8)
+    for i, val in enumerate(df_1['time_delta'].values.round(2)):
+       plt.text(i, val, float(val), horizontalalignment='center', verticalalignment='bottom', fontdict={'fontweight':500, 'size':22})  
+    
+    plt.gca().set_xticklabels(df_1['Date'], rotation=60, horizontalalignment= 'right', fontdict={'fontweight':500, 'size':22})
+    plt.title("Time per day", fontsize=22)
+    plt.ylabel('Hours')
+    plt.ylim(0, 10)
+    plt.yticks(fontsize=22)
+    plt.show()
+
+    
+    print(df_1)
+    
+    return
+
+running_weekly_avg("2020-6-8")
+
+"""
 if __name__ == '__main__':
     a = False
     b = False 
@@ -68,7 +124,7 @@ if __name__ == '__main__':
     
     if input_data == 'w':
         while a == False:
-            weeknumber = input("\n Stats for which week? if current week, use c").lower()
+            weeknumber = input("\n Stats for which week? if current week, use c\n").lower()
             if weeknumber == 'c':
                 print(weekly_avg())
                 a = True
@@ -92,7 +148,7 @@ if __name__ == '__main__':
                     a = True 
                 except:
                     print("that is not a date")
-    
+"""
     
     
     
