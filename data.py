@@ -62,11 +62,14 @@ def weekly_avg(weeknr = None):
     avg_daily = total_hours / n_days 
     return minutes_to_hours(avg_daily)
 
-def running_weekly_avg(date):
+def running_weekly_avg(date = None):
     wknr = time_logging.get_weeknumber(date)
     df_1 = pd.read_csv("logs/log{0}.csv".format(wknr-1))
     df_2 = pd.read_csv("logs/log{0}.csv".format(wknr))
-    daynr = pd.to_datetime(datetime.strptime(date,'%Y-%m-%d').date()).weekday()
+    if date == None:
+        daynr = pd.to_datetime(datetime.today().date(),format='%Y-%m-%d').weekday()
+    else:
+        daynr = pd.to_datetime(datetime.strptime(date,'%Y-%m-%d').date()).weekday()
     df_1['date_revised'] = pd.to_datetime(df_1["Date"], format='%Y-%m-%d')
     df_2['date_revised'] = pd.to_datetime(df_2["Date"], format='%Y-%m-%d')
     df_1['weekday'] = df_1['date_revised'].dt.weekday
@@ -113,9 +116,7 @@ def running_weekly_avg(date):
     
     return
 
-running_weekly_avg("2020-6-8")
 
-"""
 if __name__ == '__main__':
     a = False
     b = False 
@@ -127,6 +128,7 @@ if __name__ == '__main__':
             weeknumber = input("\n Stats for which week? if current week, use c\n").lower()
             if weeknumber == 'c':
                 print(weekly_avg())
+                running_weekly_avg()
                 a = True
             else:
                 try:
@@ -148,7 +150,7 @@ if __name__ == '__main__':
                     a = True 
                 except:
                     print("that is not a date")
-"""
+
     
     
     
