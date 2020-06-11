@@ -12,15 +12,19 @@ import matplotlib.pyplot as plt
 import matplotlib
 from os import listdir
 import calmap
+import numpy as np
 
 import time_logging
 
 
 def minutes_to_hours(minutes):
     hours_float = minutes / 60 
-    minutes = int(round(hours_float % 1 * 60))
+    minutes = int(round((hours_float % 1) * 60))        
     hours = int(hours_float - (hours_float%1))
-    return "{0}:{1}".format(hours,minutes)
+    if len(str(minutes)) == 1:
+        return "{0}:0{1}".format(hours,minutes)
+    else:    
+        return "{0}:{1}".format(hours,minutes)
     
 
 def daily_time(wknr = None, day = None):
@@ -125,20 +129,25 @@ def find_files(path, suffix = '.csv'):
     return files
         
 def stacked_lines(week = None):
+    
     mycolors = ['tab:red', 'tab:blue', 'tab:green', 'tab:orange', 'tab:brown', 'tab:grey', 'tab:pink', 'tab:olive']  
+   #grab all data, or partly
     if week == None:
+    
         files = find_files("logs/")
     else:
+        #try if week exists 
         try:
             files = "log{0}.csv".format(week)
         except:
             print("Week not available")
-            
+    #creating dataframe        
     df = pd.DataFrame()
+    #filling dataframe
     for file in files:
         df = df.append(pd.read_csv("logs/{0}".format(file)))
         
-    
+    #needs to be a function
     df.Start_time = pd.to_datetime(df['Start_time'])
     df.End_time = pd.to_datetime(df['End_time'])
     
@@ -147,61 +156,66 @@ def stacked_lines(week = None):
     
     df.time_delta = df.time_delta / 60
     
-    df['date_revised'] = pd.to_datetime(df["Date"], format='%Y-%m-%d')
-
-
-    df_1 = df.date_revised.unique()
-    
-    df_2 = df.Activity.unique()
-    
-    df = df.groupby(['date_revised', 'Activity']).sum()    
-    
+    df['date_revised'] = pd.to_datetime(df["Date"], format='%Y-%m-%d') 
+        
+    df = df.groupby(['date_revised', 'Activity']).sum()        
     df = df.reset_index()
 
     data = {}
-
+    
+    #creating dataframe from scratch...
     for index,row in df.iterrows():
-        print(row)
-        if row['date_revised'] in data:
-             
-            index = time_logging.possible_activities.index(row['Activity'])
-     
-            
-            data[row['date_revised']][index] += row['time_delta']
-          
-            
-             
+
+        if row['date_revised'] in data:             
+            index = time_logging.possible_activities.index(row['Activity'])      
+            data[row['date_revised']][index] += row['time_delta']       
         else:
             
             data[row['date_revised']] = [0] * len(time_logging.possible_activities)
-            print(data[row['date_revised']])
+            
             index = time_logging.possible_activities.index(row['Activity'])
             data[row['date_revised']][index] += row['time_delta']
     
-    df_1 = pd.DataFrame(data)
-    df_1 = df_1.transpose()       
-            
+    df_1 = pd.DataFrame(data=data, index=time_logging.possible_activities)
+    df_1 = df_1.transpose() 
+    x = df_1.index.astype(str).tolist()
+    yn = []
+    for a in time_logging.possible_activities:
+        y = df_1[a].tolist()
+        yn.append(y)
+    y = np.vstack(yn)
+
+    fig, ax = plt.subplots(1,1,figsize=(16, 9), dpi= 80)
+    columns = df_1.columns[:]
+    labs = columns.values.tolist()
     
-    #y = df[columns[0]].values.tolist()
-    print(df_1)
+    # Plot for each column
+    labs = columns.values.tolist()
+    ax = plt.gca()
+    ax.stackplot(x, y, labels=labs, colors=mycolors, alpha=0.8)
+    # Decorations
+    ax.set_title('Time per day', fontsize=18)
+    ax.set(ylim=[0, 12])
+    ax.legend(fontsize=10, ncol=4)
+    plt.xticks(x[:], fontsize=10, horizontalalignment='center')
+    plt.yticks(np.arange(1,13,1), fontsize=10)
+    plt.xlim(x[0], x[-1])
     
+    plt.show()
     
-    #fig, ax = plt.subplots(1,1,figsize=(16, 9), dpi= 80)
-    #columns = df.columns[1:]
-    #labs = columns.values.tolist()
-    
+    return 
     
 
-stacked_lines()
 
-"""
+
 if __name__ == '__main__':
     a = False
     b = False 
     
-    input_data = input("Do you wat weekly average or daily stats? W/D\n").lower()
+    input_data = input("Do you wat weekly average, daily stats or all? W/D/A\n").lower()
     
     if input_data == 'w':
+        
         while a == False:
             weeknumber = input("\n Stats for which week? if current week, use c\n").lower()
             if weeknumber == 'c':
@@ -217,7 +231,7 @@ if __name__ == '__main__':
                     print("that is not a number")
     if input_data == 'd':
         while a == False:
-            day = input("\n Stats for which day (Y-M-D)? if current day, use c").lower()
+            day = input("\n Stats for which day (Y-M-D)? if current day, use c\n").lower()
             if day == 'c':
                 print(daily_time())
                 a = True
@@ -228,5 +242,6 @@ if __name__ == '__main__':
                     a = True 
                 except:
                     print("that is not a date")
+    if input_data == 'a':
+        stacked_lines()
                     
-                    """
